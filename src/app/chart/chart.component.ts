@@ -36,6 +36,7 @@ export class ChartComponent implements OnChanges, AfterViewInit {
   // ── line ──────────────────────────────────────────────────────
   linePoints: LinePoint[] = [];
   polylinePoints = '';
+  areaPath = '';
   readonly LINE_W = 560;
   readonly LINE_H = 300;
   readonly LINE_PAD = 50;
@@ -73,6 +74,10 @@ export class ChartComponent implements OnChanges, AfterViewInit {
         this.buildColumn();
         break;
     }
+  }
+
+  get totalValue(): number {
+    return this.chartOptions?.series?.reduce((s, i) => s + i.value, 0) ?? 0;
   }
 
   // PIE ──────────────────────────────────────────────────────────
@@ -133,6 +138,14 @@ export class ChartComponent implements OnChanges, AfterViewInit {
     });
 
     this.polylinePoints = this.linePoints.map((p) => `${p.x},${p.y}`).join(' ');
+
+    // Area fill path
+    const first = this.linePoints[0];
+    const last = this.linePoints[this.linePoints.length - 1];
+    const baseline = this.LINE_PAD + (this.LINE_H - this.LINE_PAD * 2);
+    this.areaPath = `M ${first.x} ${baseline} ` +
+      this.linePoints.map(p => `L ${p.x} ${p.y}`).join(' ') +
+      ` L ${last.x} ${baseline} Z`;
   }
 
   getYAxisLabels(): YLabel[] {

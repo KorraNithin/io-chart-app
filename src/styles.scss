@@ -1,4 +1,21 @@
-/* Global reset & base */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-base: #0a0a0f;
+  --bg-card: #16161f;
+  --border: rgba(255, 255, 255, 0.07);
+  --accent: #6c63ff;
+  --accent-2: #00d9c0;
+  --text-primary: #f0f0ff;
+  --text-secondary: #8888aa;
+  --text-muted: #44445a;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+}
+
 *,
 *::before,
 *::after {
@@ -9,7 +26,9 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #f0f2f8;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-display);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

@@ -1,8 +1,21 @@
-<!DOCTYPE html>
-<div class="app-shell">
+<div class="app-shell" [class.light]="!isDarkMode">
+  <!-- Theme Toggle -->
+  <button class="theme-toggle" (click)="toggleTheme()" [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+    <span class="toggle-track">
+      <span class="toggle-thumb">
+        <span class="toggle-icon">{{ isDarkMode ? '🌙' : '☀️' }}</span>
+      </span>
+    </span>
+    <span class="toggle-label">{{ isDarkMode ? 'Dark' : 'Light' }}</span>
+  </button>
+
   <header class="app-header">
-    <h1>io-chart Demo</h1>
-    <p>Custom Angular chart component — no external chart libraries</p>
+    <div class="header-eyebrow">
+      <span class="dot"></span>
+      
+    </div>
+    <h1><span class="gradient-text">io-chart</span></h1>
+    <p>Custom Chart Component </p>
   </header>
 
   <section class="type-switcher">
@@ -19,6 +32,6 @@
   </main>
 
   <footer class="app-footer">
-    Hover over chart elements &amp; legend for interactions
+     <span>♥</span>
   </footer>
 </div>

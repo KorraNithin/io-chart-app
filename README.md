@@ -101,6 +101,39 @@ interface ChartOptions {
 
 ---
 
+## Chart Types
+
+### Line Chart
+Plots each series item as a coordinate on a Cartesian plane. A polyline connects all points. A gradient area fill is drawn beneath the line. The line animates in using SVG `stroke-dashoffset`. Points pop in with a spring-eased scale animation staggered per item.
+
+### Column Chart
+Renders each series item as a vertical bar. Bar height is proportional to value, auto-scaled against the maximum. Each bar uses a vertical gradient of its own color with a solid top cap. Bars grow upward on load with staggered animation delays.
+
+### Pie / Donut Chart
+Each slice is computed as an SVG `<path>` arc from trigonometric functions (sin/cos), starting from 12 o'clock (−90°). Renders as a donut with the total value displayed in the center hole. Percentage labels appear inside slices larger than 4%. Slices pop in with a staggered scale animation.
+
+---
+
+## Theming
+
+The app supports **Dark** and **Light** mode via a fixed toggle button in the top-right corner.
+
+Theming is implemented using **CSS custom properties**. The `.light` class is toggled on `.app-shell` from the component, and all colors cascade through CSS variables with `0.4s ease` transitions.
+
+### Dark Mode (default)
+- Background: `#0a0a0f` — deep navy black
+- Card: `#16161f` — elevated surface
+- Text: `#f0f0ff` — soft white
+- Accent blobs: Purple + teal at low opacity
+
+### Light Mode
+- Background: `#f4f4fb` — warm off-white
+- Card: `#ffffff` — pure white with purple shadow
+- Text: `#0f0f1a` — near black
+- Accent blobs: Same hues, reduced intensity
+
+---
+
 ## Design Decisions
 
 - **SVG over Canvas** — SVG integrates naturally with Angular's template binding and is accessible via `<title>` elements.

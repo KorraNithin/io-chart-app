@@ -1,14 +1,14 @@
 <div class="io-chart-wrapper">
   <!-- Error state -->
   <div *ngIf="!isValid" class="io-chart-error">
-    <span>⚠️ Invalid or missing chart options.</span>
+    ⚠ Invalid or missing chart options.
   </div>
 
   <ng-container *ngIf="isValid">
     <!-- Title -->
     <h2 class="io-chart-title">{{ chartOptions.title }}</h2>
 
-    <!-- ════════════════════ PIE CHART ════════════════════ -->
+    <!-- ══════════════════ PIE CHART ══════════════════ -->
     <ng-container *ngIf="chartOptions.type === 'pie'">
       <svg
         #svgCanvas
@@ -18,6 +18,9 @@
         role="img"
         [attr.aria-label]="chartOptions.title"
       >
+        <!-- Subtle inner ring -->
+        <circle cx="160" cy="160" r="132" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
         <g *ngFor="let slice of pieSlices">
           <path
             [attr.d]="slice.d"
@@ -26,6 +29,7 @@
             [class.pie-slice--hovered]="isHovered(slice.idx)"
             (mouseenter)="onHover(slice.idx)"
             (mouseleave)="onLeave()"
+            opacity="0.92"
           >
             <title>{{ slice.name }}: {{ slice.value }} ({{ slice.pct }}%)</title>
           </path>
@@ -38,10 +42,18 @@
             dominant-baseline="middle"
           >{{ slice.pct }}%</text>
         </g>
+
+        <!-- Center hole for donut effect -->
+        <circle cx="160" cy="160" r="52" fill="var(--bg-card, #16161f)"/>
+        <text x="160" y="156" text-anchor="middle" class="axis-label" style="font-size:9px">TOTAL</text>
+        <text x="160" y="170" text-anchor="middle" fill="var(--text-primary,#f0f0ff)"
+              style="font-size:14px;font-weight:700;font-family:var(--font-display,'Outfit',sans-serif)">
+          {{ totalValue }}
+        </text>
       </svg>
     </ng-container>
 
-    <!-- ════════════════════ LINE CHART ════════════════════ -->
+    <!-- ══════════════════ LINE CHART ══════════════════ -->
     <ng-container *ngIf="chartOptions.type === 'line'">
       <svg
         #svgCanvas
@@ -51,8 +63,16 @@
         role="img"
         [attr.aria-label]="chartOptions.title"
       >
+        <!-- Gradient fill under line -->
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(108,99,255,0.3)"/>
+            <stop offset="100%" stop-color="rgba(108,99,255,0)"/>
+          </linearGradient>
+        </defs>
+
         <!-- Grid lines -->
-        <g class="grid">
+        <g>
           <line
             *ngFor="let label of getYAxisLabels()"
             [attr.x1]="LINE_PAD"
@@ -64,27 +84,24 @@
         </g>
 
         <!-- Y-axis labels -->
-        <g class="y-axis">
-          <text
-            *ngFor="let label of getYAxisLabels()"
-            [attr.x]="LINE_PAD - 8"
-            [attr.y]="label.y"
-            class="axis-label"
-            text-anchor="end"
-            dominant-baseline="middle"
-          >{{ label.val }}</text>
-        </g>
+        <text
+          *ngFor="let label of getYAxisLabels()"
+          [attr.x]="LINE_PAD - 10"
+          [attr.y]="label.y"
+          class="axis-label"
+          text-anchor="end"
+          dominant-baseline="middle"
+        >{{ label.val }}</text>
 
         <!-- Axes -->
-        <line
-          [attr.x1]="LINE_PAD" [attr.y1]="LINE_PAD"
-          [attr.x2]="LINE_PAD" [attr.y2]="LINE_H - LINE_PAD"
-          class="axis"
-        />
-        <line
-          [attr.x1]="LINE_PAD" [attr.y1]="LINE_H - LINE_PAD"
-          [attr.x2]="LINE_W - LINE_PAD" [attr.y2]="LINE_H - LINE_PAD"
-          class="axis"
+        <line [attr.x1]="LINE_PAD" [attr.y1]="LINE_PAD" [attr.x2]="LINE_PAD" [attr.y2]="LINE_H - LINE_PAD" class="axis"/>
+        <line [attr.x1]="LINE_PAD" [attr.y1]="LINE_H - LINE_PAD" [attr.x2]="LINE_W - LINE_PAD" [attr.y2]="LINE_H - LINE_PAD" class="axis"/>
+
+        <!-- Area fill -->
+        <path
+          [attr.d]="areaPath"
+          fill="url(#lineGrad)"
+          opacity="0.6"
         />
 
         <!-- Polyline -->
@@ -92,57 +109,55 @@
           [attr.points]="polylinePoints"
           class="line-path"
           fill="none"
-          stroke="#555"
-          stroke-width="2.5"
+          stroke="rgba(255,255,255,0.25)"
+          stroke-width="2"
           stroke-linejoin="round"
           stroke-linecap="round"
         />
 
-        <!-- Points -->
+        <!-- Points + tooltips -->
         <g *ngFor="let pt of linePoints">
+          <!-- Glow ring on hover -->
+          <circle
+            *ngIf="isHovered(pt.idx)"
+            [attr.cx]="pt.x"
+            [attr.cy]="pt.y"
+            r="16"
+            [attr.fill]="pt.color"
+            opacity="0.15"
+          />
           <circle
             [attr.cx]="pt.x"
             [attr.cy]="pt.y"
-            [attr.r]="isHovered(pt.idx) ? 9 : 6"
+            [attr.r]="isHovered(pt.idx) ? 8 : 5"
             [attr.fill]="pt.color"
             class="line-point"
             [class.line-point--hovered]="isHovered(pt.idx)"
             (mouseenter)="onHover(pt.idx)"
             (mouseleave)="onLeave()"
-            stroke="#fff"
-            stroke-width="2"
+            stroke="var(--bg-card,#16161f)"
+            stroke-width="2.5"
           >
             <title>{{ pt.name }}: {{ pt.value }}</title>
           </circle>
 
-          <!-- Tooltip on hover -->
-          <g *ngIf="isHovered(pt.idx)" class="tooltip-group">
-            <rect
-              [attr.x]="pt.x - 36"
-              [attr.y]="pt.y - 36"
-              width="72" height="24" rx="4"
-              class="tooltip-bg"
-            />
-            <text
-              [attr.x]="pt.x"
-              [attr.y]="pt.y - 20"
-              class="tooltip-text"
-              text-anchor="middle"
-            >{{ pt.name }}: {{ pt.value }}</text>
+          <!-- Tooltip -->
+          <g *ngIf="isHovered(pt.idx)">
+            <rect [attr.x]="pt.x - 38" [attr.y]="pt.y - 40" width="76" height="26" rx="6" class="tooltip-bg"/>
+            <text [attr.x]="pt.x" [attr.y]="pt.y - 23" class="tooltip-text" text-anchor="middle">
+              {{ pt.name }}: {{ pt.value }}
+            </text>
           </g>
 
           <!-- X-axis label -->
-          <text
-            [attr.x]="pt.x"
-            [attr.y]="LINE_H - LINE_PAD + 20"
-            class="axis-label"
-            text-anchor="middle"
-          >{{ pt.name }}</text>
+          <text [attr.x]="pt.x" [attr.y]="LINE_H - LINE_PAD + 18" class="axis-label" text-anchor="middle">
+            {{ pt.name }}
+          </text>
         </g>
       </svg>
     </ng-container>
 
-    <!-- ════════════════════ COLUMN CHART ════════════════════ -->
+    <!-- ══════════════════ COLUMN CHART ══════════════════ -->
     <ng-container *ngIf="chartOptions.type === 'column'">
       <svg
         #svgCanvas
@@ -152,41 +167,36 @@
         role="img"
         [attr.aria-label]="chartOptions.title"
       >
+        <defs>
+          <linearGradient *ngFor="let bar of colBars" [attr.id]="'barGrad' + bar.idx" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" [attr.stop-color]="bar.color" stop-opacity="1"/>
+            <stop offset="100%" [attr.stop-color]="bar.color" stop-opacity="0.5"/>
+          </linearGradient>
+        </defs>
+
         <!-- Grid lines -->
-        <g class="grid">
-          <line
-            *ngFor="let label of getColYLabels()"
-            [attr.x1]="COL_PAD"
-            [attr.y1]="label.y"
-            [attr.x2]="COL_W - COL_PAD"
-            [attr.y2]="label.y"
-            class="grid-line"
-          />
-        </g>
+        <line
+          *ngFor="let label of getColYLabels()"
+          [attr.x1]="COL_PAD"
+          [attr.y1]="label.y"
+          [attr.x2]="COL_W - COL_PAD"
+          [attr.y2]="label.y"
+          class="grid-line"
+        />
 
         <!-- Y-axis labels -->
-        <g class="y-axis">
-          <text
-            *ngFor="let label of getColYLabels()"
-            [attr.x]="COL_PAD - 8"
-            [attr.y]="label.y"
-            class="axis-label"
-            text-anchor="end"
-            dominant-baseline="middle"
-          >{{ label.val }}</text>
-        </g>
+        <text
+          *ngFor="let label of getColYLabels()"
+          [attr.x]="COL_PAD - 10"
+          [attr.y]="label.y"
+          class="axis-label"
+          text-anchor="end"
+          dominant-baseline="middle"
+        >{{ label.val }}</text>
 
         <!-- Axes -->
-        <line
-          [attr.x1]="COL_PAD" [attr.y1]="COL_PAD"
-          [attr.x2]="COL_PAD" [attr.y2]="COL_H - COL_PAD"
-          class="axis"
-        />
-        <line
-          [attr.x1]="COL_PAD" [attr.y1]="COL_H - COL_PAD"
-          [attr.x2]="COL_W - COL_PAD" [attr.y2]="COL_H - COL_PAD"
-          class="axis"
-        />
+        <line [attr.x1]="COL_PAD" [attr.y1]="COL_PAD" [attr.x2]="COL_PAD" [attr.y2]="COL_H - COL_PAD" class="axis"/>
+        <line [attr.x1]="COL_PAD" [attr.y1]="COL_H - COL_PAD" [attr.x2]="COL_W - COL_PAD" [attr.y2]="COL_H - COL_PAD" class="axis"/>
 
         <!-- Bars -->
         <g *ngFor="let bar of colBars">
@@ -195,52 +205,48 @@
             [attr.y]="bar.y"
             [attr.width]="bar.width"
             [attr.height]="bar.height"
-            [attr.fill]="bar.color"
+            [attr.fill]="'url(#barGrad' + bar.idx + ')'"
             class="col-bar"
             [class.col-bar--hovered]="isHovered(bar.idx)"
-            rx="4"
+            rx="6"
             (mouseenter)="onHover(bar.idx)"
             (mouseleave)="onLeave()"
           >
             <title>{{ bar.name }}: {{ bar.value }}</title>
           </rect>
 
-          <!-- Value label on top of bar -->
-          <text
-            [attr.x]="bar.x + bar.width / 2"
-            [attr.y]="bar.y - 6"
-            class="bar-value-label"
-            text-anchor="middle"
-          >{{ bar.value }}</text>
+          <!-- Top cap -->
+          <rect
+            [attr.x]="bar.x"
+            [attr.y]="bar.y"
+            [attr.width]="bar.width"
+            height="4"
+            [attr.fill]="bar.color"
+            rx="3"
+          />
 
-          <!-- Tooltip on hover -->
-          <g *ngIf="isHovered(bar.idx)" class="tooltip-group">
-            <rect
-              [attr.x]="bar.x + bar.width / 2 - 36"
-              [attr.y]="bar.y - 38"
-              width="72" height="24" rx="4"
-              class="tooltip-bg"
-            />
-            <text
-              [attr.x]="bar.x + bar.width / 2"
-              [attr.y]="bar.y - 22"
-              class="tooltip-text"
-              text-anchor="middle"
-            >{{ bar.name }}: {{ bar.value }}</text>
+          <!-- Value label -->
+          <text [attr.x]="bar.x + bar.width / 2" [attr.y]="bar.y - 8" class="bar-value-label" text-anchor="middle">
+            {{ bar.value }}
+          </text>
+
+          <!-- Tooltip -->
+          <g *ngIf="isHovered(bar.idx)">
+            <rect [attr.x]="bar.x + bar.width/2 - 38" [attr.y]="bar.y - 42" width="76" height="26" rx="6" class="tooltip-bg"/>
+            <text [attr.x]="bar.x + bar.width / 2" [attr.y]="bar.y - 25" class="tooltip-text" text-anchor="middle">
+              {{ bar.name }}: {{ bar.value }}
+            </text>
           </g>
 
           <!-- X-axis label -->
-          <text
-            [attr.x]="bar.x + bar.width / 2"
-            [attr.y]="COL_H - COL_PAD + 20"
-            class="axis-label"
-            text-anchor="middle"
-          >{{ bar.name }}</text>
+          <text [attr.x]="bar.x + bar.width / 2" [attr.y]="COL_H - COL_PAD + 18" class="axis-label" text-anchor="middle">
+            {{ bar.name }}
+          </text>
         </g>
       </svg>
     </ng-container>
 
-    <!-- ════════════════════ LEGEND ════════════════════ -->
+    <!-- ══════════════════ LEGEND ══════════════════ -->
     <div class="io-chart-legend">
       <div
         *ngFor="let item of chartOptions.series; let i = index"
@@ -249,8 +255,8 @@
         (mouseenter)="onHover(i)"
         (mouseleave)="onLeave()"
       >
-        <span class="legend-swatch" [style.background]="item.color"></span>
-        <span class="legend-label">{{ item.name }}&nbsp;({{ item.value }})</span>
+        <span class="legend-swatch" [style.background]="item.color" [style.box-shadow]="'0 0 8px ' + item.color"></span>
+        <span class="legend-label">{{ item.name }}&nbsp;<span style="opacity:0.5">{{ item.value }}</span></span>
       </div>
     </div>
   </ng-container>

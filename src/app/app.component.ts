@@ -12,7 +12,12 @@ import { ChartOptions } from './chart/chart.model';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+  isDarkMode = true;
   selectedType: ChartOptions['type'] = 'line';
+
+  toggleTheme(): void {
+    this.isDarkMode = !this.isDarkMode;
+  }
 
   readonly chartTypes: ChartOptions['type'][] = ['line', 'column', 'pie'];
 
