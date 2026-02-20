@@ -1,0 +1,197 @@
+// ── Variables ──────────────────────────────────────────────────────────────
+$font-family: 'Segoe UI', Arial, sans-serif;
+$title-color: #1a1a2e;
+$axis-color: #555;
+$grid-color: #e8e8e8;
+$bg: #ffffff;
+$shadow: 0 4px 24px rgba(0, 0, 0, 0.09);
+$border-radius: 16px;
+$transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ── Wrapper ────────────────────────────────────────────────────────────────
+.io-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: $bg;
+  border-radius: $border-radius;
+  box-shadow: $shadow;
+  padding: 32px 24px 24px;
+  font-family: $font-family;
+  max-width: 680px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// ── Title ──────────────────────────────────────────────────────────────────
+.io-chart-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: $title-color;
+  margin: 0 0 20px;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+// ── SVG canvas ────────────────────────────────────────────────────────────
+.io-chart-svg {
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+// ── Grid & Axes ───────────────────────────────────────────────────────────
+.grid-line {
+  stroke: $grid-color;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.axis {
+  stroke: $axis-color;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.axis-label {
+  font-size: 11px;
+  fill: #888;
+  font-family: $font-family;
+}
+
+// ── Line chart ────────────────────────────────────────────────────────────
+.line-path {
+  transition: $transition;
+}
+
+.line-point {
+  cursor: pointer;
+  transition: $transition;
+
+  &--hovered {
+    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.35));
+  }
+}
+
+// ── Column chart ──────────────────────────────────────────────────────────
+.col-bar {
+  cursor: pointer;
+  transition: $transition;
+  transform-origin: bottom;
+
+  &--hovered {
+    filter: brightness(1.15) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+  }
+}
+
+.bar-value-label {
+  font-size: 11px;
+  fill: #444;
+  font-family: $font-family;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+// ── Pie chart ─────────────────────────────────────────────────────────────
+.pie-slice {
+  cursor: pointer;
+  transition: $transition;
+  transform-origin: 160px 160px; // matches PIE_CX / PIE_CY
+
+  &--hovered {
+    transform: scale(1.05);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.pie-label {
+  font-size: 12px;
+  fill: #fff;
+  font-weight: 700;
+  pointer-events: none;
+  font-family: $font-family;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────────
+.tooltip-bg {
+  fill: rgba(30, 30, 30, 0.82);
+  rx: 4px;
+  pointer-events: none;
+}
+
+.tooltip-text {
+  font-size: 11px;
+  fill: #fff;
+  font-family: $font-family;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+// ── Legend ────────────────────────────────────────────────────────────────
+.io-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 20px;
+  margin-top: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 20px;
+  transition: $transition;
+  border: 1.5px solid transparent;
+
+  &--hovered {
+    background: #f3f3f7;
+    border-color: #d8d8e8;
+  }
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-size: 13px;
+  color: #333;
+  font-family: $font-family;
+}
+
+// ── Error state ───────────────────────────────────────────────────────────
+.io-chart-error {
+  color: #c0392b;
+  background: #ffeaea;
+  border-radius: 8px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-family: $font-family;
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .io-chart-wrapper {
+    padding: 20px 10px 16px;
+    border-radius: 10px;
+  }
+
+  .io-chart-title {
+    font-size: 1.1rem;
+  }
+
+  .legend-label {
+    font-size: 11px;
+  }
+}

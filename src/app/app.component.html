@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<div class="app-shell">
+  <header class="app-header">
+    <h1>io-chart Demo</h1>
+    <p>Custom Angular chart component — no external chart libraries</p>
+  </header>
+
+  <section class="type-switcher">
+    <button
+      *ngFor="let type of chartTypes"
+      class="type-btn"
+      [class.type-btn--active]="selectedType === type"
+      (click)="selectedType = type"
+    >{{ type | titlecase }}</button>
+  </section>
+
+  <main class="chart-container">
+    <io-chart [chartOptions]="chartOptions"></io-chart>
+  </main>
+
+  <footer class="app-footer">
+    Hover over chart elements &amp; legend for interactions
+  </footer>
+</div>

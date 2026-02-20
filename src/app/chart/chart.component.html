@@ -1,0 +1,257 @@
+<div class="io-chart-wrapper">
+  <!-- Error state -->
+  <div *ngIf="!isValid" class="io-chart-error">
+    <span>⚠️ Invalid or missing chart options.</span>
+  </div>
+
+  <ng-container *ngIf="isValid">
+    <!-- Title -->
+    <h2 class="io-chart-title">{{ chartOptions.title }}</h2>
+
+    <!-- ════════════════════ PIE CHART ════════════════════ -->
+    <ng-container *ngIf="chartOptions.type === 'pie'">
+      <svg
+        #svgCanvas
+        class="io-chart-svg"
+        viewBox="0 0 320 320"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        [attr.aria-label]="chartOptions.title"
+      >
+        <g *ngFor="let slice of pieSlices">
+          <path
+            [attr.d]="slice.d"
+            [attr.fill]="slice.color"
+            class="pie-slice"
+            [class.pie-slice--hovered]="isHovered(slice.idx)"
+            (mouseenter)="onHover(slice.idx)"
+            (mouseleave)="onLeave()"
+          >
+            <title>{{ slice.name }}: {{ slice.value }} ({{ slice.pct }}%)</title>
+          </path>
+          <text
+            *ngIf="slice.pct > 4"
+            [attr.x]="slice.labelX"
+            [attr.y]="slice.labelY"
+            class="pie-label"
+            text-anchor="middle"
+            dominant-baseline="middle"
+          >{{ slice.pct }}%</text>
+        </g>
+      </svg>
+    </ng-container>
+
+    <!-- ════════════════════ LINE CHART ════════════════════ -->
+    <ng-container *ngIf="chartOptions.type === 'line'">
+      <svg
+        #svgCanvas
+        class="io-chart-svg"
+        [attr.viewBox]="'0 0 ' + LINE_W + ' ' + LINE_H"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        [attr.aria-label]="chartOptions.title"
+      >
+        <!-- Grid lines -->
+        <g class="grid">
+          <line
+            *ngFor="let label of getYAxisLabels()"
+            [attr.x1]="LINE_PAD"
+            [attr.y1]="label.y"
+            [attr.x2]="LINE_W - LINE_PAD"
+            [attr.y2]="label.y"
+            class="grid-line"
+          />
+        </g>
+
+        <!-- Y-axis labels -->
+        <g class="y-axis">
+          <text
+            *ngFor="let label of getYAxisLabels()"
+            [attr.x]="LINE_PAD - 8"
+            [attr.y]="label.y"
+            class="axis-label"
+            text-anchor="end"
+            dominant-baseline="middle"
+          >{{ label.val }}</text>
+        </g>
+
+        <!-- Axes -->
+        <line
+          [attr.x1]="LINE_PAD" [attr.y1]="LINE_PAD"
+          [attr.x2]="LINE_PAD" [attr.y2]="LINE_H - LINE_PAD"
+          class="axis"
+        />
+        <line
+          [attr.x1]="LINE_PAD" [attr.y1]="LINE_H - LINE_PAD"
+          [attr.x2]="LINE_W - LINE_PAD" [attr.y2]="LINE_H - LINE_PAD"
+          class="axis"
+        />
+
+        <!-- Polyline -->
+        <polyline
+          [attr.points]="polylinePoints"
+          class="line-path"
+          fill="none"
+          stroke="#555"
+          stroke-width="2.5"
+          stroke-linejoin="round"
+          stroke-linecap="round"
+        />
+
+        <!-- Points -->
+        <g *ngFor="let pt of linePoints">
+          <circle
+            [attr.cx]="pt.x"
+            [attr.cy]="pt.y"
+            [attr.r]="isHovered(pt.idx) ? 9 : 6"
+            [attr.fill]="pt.color"
+            class="line-point"
+            [class.line-point--hovered]="isHovered(pt.idx)"
+            (mouseenter)="onHover(pt.idx)"
+            (mouseleave)="onLeave()"
+            stroke="#fff"
+            stroke-width="2"
+          >
+            <title>{{ pt.name }}: {{ pt.value }}</title>
+          </circle>
+
+          <!-- Tooltip on hover -->
+          <g *ngIf="isHovered(pt.idx)" class="tooltip-group">
+            <rect
+              [attr.x]="pt.x - 36"
+              [attr.y]="pt.y - 36"
+              width="72" height="24" rx="4"
+              class="tooltip-bg"
+            />
+            <text
+              [attr.x]="pt.x"
+              [attr.y]="pt.y - 20"
+              class="tooltip-text"
+              text-anchor="middle"
+            >{{ pt.name }}: {{ pt.value }}</text>
+          </g>
+
+          <!-- X-axis label -->
+          <text
+            [attr.x]="pt.x"
+            [attr.y]="LINE_H - LINE_PAD + 20"
+            class="axis-label"
+            text-anchor="middle"
+          >{{ pt.name }}</text>
+        </g>
+      </svg>
+    </ng-container>
+
+    <!-- ════════════════════ COLUMN CHART ════════════════════ -->
+    <ng-container *ngIf="chartOptions.type === 'column'">
+      <svg
+        #svgCanvas
+        class="io-chart-svg"
+        [attr.viewBox]="'0 0 ' + COL_W + ' ' + COL_H"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        [attr.aria-label]="chartOptions.title"
+      >
+        <!-- Grid lines -->
+        <g class="grid">
+          <line
+            *ngFor="let label of getColYLabels()"
+            [attr.x1]="COL_PAD"
+            [attr.y1]="label.y"
+            [attr.x2]="COL_W - COL_PAD"
+            [attr.y2]="label.y"
+            class="grid-line"
+          />
+        </g>
+
+        <!-- Y-axis labels -->
+        <g class="y-axis">
+          <text
+            *ngFor="let label of getColYLabels()"
+            [attr.x]="COL_PAD - 8"
+            [attr.y]="label.y"
+            class="axis-label"
+            text-anchor="end"
+            dominant-baseline="middle"
+          >{{ label.val }}</text>
+        </g>
+
+        <!-- Axes -->
+        <line
+          [attr.x1]="COL_PAD" [attr.y1]="COL_PAD"
+          [attr.x2]="COL_PAD" [attr.y2]="COL_H - COL_PAD"
+          class="axis"
+        />
+        <line
+          [attr.x1]="COL_PAD" [attr.y1]="COL_H - COL_PAD"
+          [attr.x2]="COL_W - COL_PAD" [attr.y2]="COL_H - COL_PAD"
+          class="axis"
+        />
+
+        <!-- Bars -->
+        <g *ngFor="let bar of colBars">
+          <rect
+            [attr.x]="bar.x"
+            [attr.y]="bar.y"
+            [attr.width]="bar.width"
+            [attr.height]="bar.height"
+            [attr.fill]="bar.color"
+            class="col-bar"
+            [class.col-bar--hovered]="isHovered(bar.idx)"
+            rx="4"
+            (mouseenter)="onHover(bar.idx)"
+            (mouseleave)="onLeave()"
+          >
+            <title>{{ bar.name }}: {{ bar.value }}</title>
+          </rect>
+
+          <!-- Value label on top of bar -->
+          <text
+            [attr.x]="bar.x + bar.width / 2"
+            [attr.y]="bar.y - 6"
+            class="bar-value-label"
+            text-anchor="middle"
+          >{{ bar.value }}</text>
+
+          <!-- Tooltip on hover -->
+          <g *ngIf="isHovered(bar.idx)" class="tooltip-group">
+            <rect
+              [attr.x]="bar.x + bar.width / 2 - 36"
+              [attr.y]="bar.y - 38"
+              width="72" height="24" rx="4"
+              class="tooltip-bg"
+            />
+            <text
+              [attr.x]="bar.x + bar.width / 2"
+              [attr.y]="bar.y - 22"
+              class="tooltip-text"
+              text-anchor="middle"
+            >{{ bar.name }}: {{ bar.value }}</text>
+          </g>
+
+          <!-- X-axis label -->
+          <text
+            [attr.x]="bar.x + bar.width / 2"
+            [attr.y]="COL_H - COL_PAD + 20"
+            class="axis-label"
+            text-anchor="middle"
+          >{{ bar.name }}</text>
+        </g>
+      </svg>
+    </ng-container>
+
+    <!-- ════════════════════ LEGEND ════════════════════ -->
+    <div class="io-chart-legend">
+      <div
+        *ngFor="let item of chartOptions.series; let i = index"
+        class="legend-item"
+        [class.legend-item--hovered]="isHovered(i)"
+        (mouseenter)="onHover(i)"
+        (mouseleave)="onLeave()"
+      >
+        <span class="legend-swatch" [style.background]="item.color"></span>
+        <span class="legend-label">{{ item.name }}&nbsp;({{ item.value }})</span>
+      </div>
+    </div>
+  </ng-container>
+</div>
